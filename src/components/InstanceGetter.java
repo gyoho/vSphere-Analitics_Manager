@@ -29,10 +29,6 @@ public class InstanceGetter {
 		if(instanceList == null || instanceList.size() == 0) {
 			System.out.println("No " + instanceType + " exists in the inventory");
 		}
-
-		/*for (ManagedEntity instance : instanceList) {
-		    System.out.println(instanceType + " " + instance.getName());
-		}*/
 		
 		return instanceList;
 	}

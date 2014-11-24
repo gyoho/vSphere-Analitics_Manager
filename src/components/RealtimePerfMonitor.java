@@ -12,6 +12,7 @@ import com.vmware.vim25.PerfMetricId;
 import com.vmware.vim25.PerfMetricSeriesCSV;
 import com.vmware.vim25.PerfProviderSummary;
 import com.vmware.vim25.PerfQuerySpec;
+import com.vmware.vim25.mo.HostSystem;
 import com.vmware.vim25.mo.ManagedEntity;
 import com.vmware.vim25.mo.PerformanceManager;
 import com.vmware.vim25.mo.ServiceInstance;
@@ -21,14 +22,14 @@ import com.vmware.vim25.mo.VirtualMachine;
 public class RealtimePerfMonitor {
 	
 	@SuppressWarnings("resource")
-	public static void printStats(ServiceInstance si, VirtualMachine vm, CounterIDCounterInfoMapper ccm) throws Exception {
+	public static void printStats(ServiceInstance si, ManagedEntity vm, CounterIDCounterInfoMapper ccm) throws Exception {
 		
 		/** Create log file **/
 		FileOutputStream out;
 		PrintStream ps;
 		 
 		// true => append
-		out = new FileOutputStream("/Users/gyoho/Class/Virtualization/Project/Part B/stats_part.txt", true);
+		out = new FileOutputStream("/Users/gyoho/logstash-1.4.2/stats.txt", true);
 		// Connect print stream to the output stream
 		ps = new PrintStream(out);
 		
@@ -58,7 +59,7 @@ public class RealtimePerfMonitor {
 		
 		/**
 		 * Create the query specification for queryPerf().
-		 * Specify 1 minute rollup interval and CSV output format.
+		 * Specify ONLY 1 value showing up
 		 **/
 		PerfQuerySpec qSpec = createPerfQuerySpec(vm, pmis, 1, refreshRate);
 		
@@ -92,8 +93,11 @@ public class RealtimePerfMonitor {
 			}
 			
 			
-			/** Output the VM's name **/
-			ps.println("\n\nName: " + vm.getName() + "\n\n");
+			/** 
+			 * Output format:
+			 * Timestamp VMType VMName GroupInfo NameInfo rollupType UnitInfo value
+			**/
+			
 			
 			/**
 			 * Retrieve time interval information (PerfEntityMetricCSV.sampleInfoCSV).
@@ -117,11 +121,15 @@ public class RealtimePerfMonitor {
 				 */
 				PerfCounterInfo pci = ccm.get(csv.getId().getCounterId());
 				/* Print out the metadata for the counter. */
-//				ps.println("----------------------------------------");
-				ps.print(new Timestamp(date.getTime()));
-				ps.print(pci.getGroupInfo().getKey() + "." + pci.getNameInfo().getKey() + "." + pci.getRollupType() + " - " + pci.getUnitInfo().getKey());
-				ps.print("Instance: "+csv.getId().getInstance());
-				ps.print("Values: " + csv.getValue());
+				
+				ps.print(new Timestamp(date.getTime()) + " ");
+				if(vm instanceof VirtualMachine) {
+					ps.print("VirtualMachine " + vm.getName() + " ");
+				} else if(vm instanceof HostSystem) {
+					ps.print("HostSystem " + vm.getName() + " ");
+				}
+				ps.print(pci.getGroupInfo().getKey() + " " + pci.getNameInfo().getKey() + " " + pci.getRollupType() + " " + pci.getUnitInfo().getKey() + " ");
+				ps.print(csv.getValue() + "\n");
 			}
 		}
 		

@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import com.vmware.vim25.mo.*;
 
 import components.*;
@@ -9,6 +11,8 @@ public class Starter {
 	private ServiceInstance center;
 	private Folder rootFolder;
 	private Datacenter datacenter;
+	private ArrayList<ManagedEntity> vmList;
+	private ArrayList<ManagedEntity> hostList;
 	private HostSystem host;
 	private VirtualMachine vm;
 	private CounterIDCounterInfoMapper ccm;
@@ -28,15 +32,20 @@ public class Starter {
 		// get root folder of the vCenter
 		rootFolder = RootFolderGetter.getRootFolder(center);
 		
-		
 		// get datacenter
 		String dcName = "DC-Team06";
 		datacenter = (Datacenter) new InventoryNavigator(rootFolder).searchManagedEntity("Datacenter", dcName);
 		
-		// get specific VM
-		String vmName = "T06-VM01-Ubn01";
-		vm = (VirtualMachine) new InventoryNavigator(rootFolder).searchManagedEntity("VirtualMachine", vmName);
 		
+		// get all VMs in the vCenter, excluding hosts
+		vmList = InstanceGetter.getAllInstance(rootFolder, "VirtualMachine");
+		// get all hosts
+		hostList = InstanceGetter.getAllInstance(rootFolder, "HostSystem");
+		
+		
+		// get specific VM
+		String vmName = "T06_VM01_Ubn01";
+		vm = (VirtualMachine) new InventoryNavigator(rootFolder).searchManagedEntity("VirtualMachine", vmName);		
 		// get Host
 		String hostName = "130.65.132.184"; 
 		host = (HostSystem) new InventoryNavigator(rootFolder).searchManagedEntity("HostSystem", hostName);
@@ -44,14 +53,28 @@ public class Starter {
 		ccm = new CounterIDCounterInfoMapper(center, vm);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void start() throws Exception {
 		
 //		RealtimePerfMonitor.printStats(center, vm, ccm);
 		
 		long interval = 5*1000;
-		while(true) {
+		/*while(true) {
 			RealtimePerfMonitor.printStats(center, vm, ccm);
 			Thread.sleep(interval);
+		}*/
+		
+		while(true) {
+			startRealtimePerfMonitor(vmList, hostList);
+			Thread.sleep(interval);
+		}
+	}
+	
+	private void startRealtimePerfMonitor(ArrayList<ManagedEntity> ... vmLists ) throws Exception {
+		for(ArrayList<ManagedEntity> vmList : vmLists) {
+			for(ManagedEntity vm: vmList) {
+				RealtimePerfMonitor.printStats(center, vm, ccm);
+			}
 		}
 	}
 }
