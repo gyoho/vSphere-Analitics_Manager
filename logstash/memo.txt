@@ -1,0 +1,16 @@
+2014-05-03 20:38:13.222 VirtualMachine T06_VM01_Ubn01 mem usage average percent 25.99
+2014-05-03 20:38:13.222 VirtualMachine T06_VM01_Ubn01 mem usage average percent 33.57
+2014-05-03 20:38:13.222 VirtualMachine T06_VM01_Ubn01 mem usage average percent 25.53
+
+
+mongodb {
+    collection => "vmLogs"
+    database => "cmpe283_Project2"
+    uri => "mongodb://gyoho:internation@ds053310.mongolab.com:53310/cmpe283_project2"
+}
+
+mongodb {
+    collection => "vmLogs"
+    database => "cmpe283_Project2"
+    uri => "mongodb://localhost:27017/cmpe283_project2"
+}

@@ -1,18 +1,17 @@
 package components;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import com.mongodb.WriteConcern;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.DBCursor;
-import com.mongodb.ServerAddress;
 
 import java.net.UnknownHostException;
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 public class MongoToMySQLTransporter {
 	
@@ -20,13 +19,14 @@ public class MongoToMySQLTransporter {
 	private static Connection database;
 	private static ArrayList<BasicDBObject> documentList;
 	
-	public static void runMongoDB() throws UnknownHostException {
+	public static void makeConnection() throws UnknownHostException, ClassNotFoundException, SQLException {
 		collection = MongoDBConnector.connect();
-		documentList = MongoDBConnector.retrive(collection);	
+		database = MySQLConnector.connect();
+			
 	}
 	
-	public static void runMySQL() throws ClassNotFoundException, SQLException {
-		database = MySQLConnector.connect();
+	public static void transportData() throws ClassNotFoundException, SQLException, ParseException {
+		documentList = MongoDBConnector.retrive(collection);
 		MySQLConnector.insert(database, documentList);
 	}
 	
@@ -43,7 +43,7 @@ public class MongoToMySQLTransporter {
 	         MongoClient mongoClient = new MongoClient(HOST_NAME, PORT_NUM);
 	         // connect to your databases
 	         DB db = mongoClient.getDB(DB_NAME);
-			 System.out.println("Connect to database 'cmpe283_Project2' successfully");
+			 System.out.println("Mongo: connecting to database 'cmpe283_Project2' ...");
 			 
 			 // no authentication required
 	         /*boolean auth = db.authenticate(myUserName, myPassword);
@@ -51,7 +51,7 @@ public class MongoToMySQLTransporter {
 			 
 			// get a collection
 	        DBCollection col = db.getCollection(COLLECTION_NAME);
-	        System.out.println("Collection 'vmLogs' selected successfully");
+	        System.out.println("Mongo: collection 'vmLogs' selected");
 			return col;
 		}
 		
@@ -75,10 +75,10 @@ public class MongoToMySQLTransporter {
 				docList.add(doc);
 	        }
 	        
-	        /** test **/
-	        for(BasicDBObject json : docList) {
+	        
+	        /*for(BasicDBObject json : docList) {
 	        	System.out.println(json); 
-	        }
+	        }*/
 	        
 	        return docList;
 		}
@@ -104,14 +104,14 @@ public class MongoToMySQLTransporter {
 			Class.forName(JDBC_DRIVER);
 			
 			// Open a connection
-			System.out.println("Connecting to database 'cmpe283_Project2' ...");
+			System.out.println("MySQL: connecting to database 'cmpe283_Project2' ...");
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
-			System.out.println("Connected database successfully...");
+			System.out.println("MySQL: connected database successfully...");
 			
 			return conn;	
 		}
 		
-		public static void insert(Connection conn, ArrayList<BasicDBObject> docList) throws SQLException {
+		public static void insert(Connection conn, ArrayList<BasicDBObject> docList) throws SQLException, ParseException {
 			
 			Statement stmt = null;
 			
@@ -125,13 +125,41 @@ public class MongoToMySQLTransporter {
 //		    VALUES (value1,value2,value3,...);
 		    
 		    for(BasicDBObject doc : docList) {
-			    String sql = "INSERT INTO " + TABLE_NAME
-			    		+ "(id, timestamp, vmType, vmName, groupInfo, nameInfo, rollupType, unitInfo, value) "
-			    		+ "VALUES(" + doc.getString("_id") + doc.getDate("timestamp") + doc.getString("vmType")
-			    		+ doc.getString("vnName") + doc.getString("groupInfo") + doc.getString("nameInfo")
-			    		+ doc.getString("rollupType") + doc.getString("unitInfo") + doc.getInt("timestamp") + ")";
+		    	
+		    	String id = doc.getString("_id");
+		    	Timestamp timestamp = parseDate(doc.getString("@timestamp"));
+		    	String vmType = doc.getString("vmType");
+		    	String vmName = doc.getString("vmName");
+		    	String groupInfo = doc.getString("groupInfo");
+		    	String nameInfo = doc.getString("nameInfo");
+		    	String rollupType = doc.getString("rollupType");
+		    	String unitInfo = doc.getString("unitInfo");
+		    	Integer value = doc.getInt("value");
+		    	
+		    	
+			    String sql = "INSERT IGNORE INTO " + TABLE_NAME
+			    		+ " (id, timestamp, vmType, vmName, groupInfo, nameInfo, rollupType, unitInfo, value)"
+			    		+ " VALUES('" + id + "', '" + timestamp + "', '" + vmType	+ "', '" + vmName + "', '" + groupInfo 
+			    		+ "', '" + nameInfo + "', '" + rollupType + "', '" + unitInfo + "', " + value + ")";
+			    
+			    
+//			    System.out.println(sql);
+			    
 			    stmt.executeUpdate(sql);
 		    }
+		}
+		
+		/*
+		 * format of time zone in mongodb:
+		 * "@timestamp" : "\"2014-11-24T05:24:31.484Z\""
+		 */
+		private static Timestamp parseDate(String timestamp) throws ParseException {
+			SimpleDateFormat formatter = new SimpleDateFormat("\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"");
+			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+			java.util.Date date = formatter.parse(timestamp);
+			Timestamp sqltimestamp = new Timestamp(date.getTime());
+			
+			return sqltimestamp;
 		}
 	}
 }

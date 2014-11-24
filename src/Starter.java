@@ -58,16 +58,30 @@ public class Starter {
 		
 //		RealtimePerfMonitor.printStats(center, vm, ccm);
 		
+		long logstashBreak = 1*1000; 
 		long interval = 5*1000;
-		/*while(true) {
+		/* TEST
+		   while(true) {
 			RealtimePerfMonitor.printStats(center, vm, ccm);
 			Thread.sleep(interval);
-		}*/
+		   }
+		*/
 		
 		while(true) {
+			System.out.println("Extracting logs...");
 			startRealtimePerfMonitor(vmList, hostList);
+			
+			System.out.println("Waiting for Logstash to do its job...");
+			Thread.sleep(logstashBreak);
+			
+			System.out.println("Transporting logs from MongoDB to MySQL...");
+			MongoToMySQLTransporter.makeConnection();		
+			MongoToMySQLTransporter.transportData();
+			
+			System.out.println("Sleeping 5 seconds...");
 			Thread.sleep(interval);
-		}
+		}		
+		
 	}
 	
 	private void startRealtimePerfMonitor(ArrayList<ManagedEntity> ... vmLists ) throws Exception {

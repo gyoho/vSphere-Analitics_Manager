@@ -29,7 +29,7 @@ public class RealtimePerfMonitor {
 		PrintStream ps;
 		 
 		// true => append
-		out = new FileOutputStream("/Users/gyoho/logstash-1.4.2/stats.txt", true);
+		out = new FileOutputStream("/Users/gyoho/logstash-1.4.2/data/stats.txt", true);
 		// Connect print stream to the output stream
 		ps = new PrintStream(out);
 		
