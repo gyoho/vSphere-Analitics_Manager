@@ -78,7 +78,7 @@ public class Starter {
 			MongoToMySQLTransporter.makeConnection();		
 			MongoToMySQLTransporter.transportData();
 			
-			System.out.println("Sleeping 5 seconds...");
+			System.out.println("Sleeping 5 seconds...\n\n");
 			Thread.sleep(interval);
 		}		
 		

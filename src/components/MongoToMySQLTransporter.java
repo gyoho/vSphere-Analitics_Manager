@@ -5,6 +5,7 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
+import com.mongodb.MongoClientURI;
 
 import java.net.UnknownHostException;
 import java.sql.*;
@@ -32,22 +33,17 @@ public class MongoToMySQLTransporter {
 	
 	
 	private static class MongoDBConnector {
-		
-		static final String HOST_NAME = "localhost";
-		static final Integer PORT_NUM = 27017;
+	
 		static final String DB_NAME = "cmpe283_Project2";
 		static final String COLLECTION_NAME = "vmLogs";
 		
 		public static DBCollection connect() throws UnknownHostException {
-			 // connect to mongodb server
-	         MongoClient mongoClient = new MongoClient(HOST_NAME, PORT_NUM);
-	         // connect to your databases
-	         DB db = mongoClient.getDB(DB_NAME);
-			 System.out.println("Mongo: connecting to database 'cmpe283_Project2' ...");
-			 
-			 // no authentication required
-	         /*boolean auth = db.authenticate(myUserName, myPassword);
-			 System.out.println("Authentication: "+auth);*/
+			
+			// Standard URI format: mongodb://[dbuser:dbpassword@]host:port/dbname 
+	        MongoClientURI uri  = new MongoClientURI("mongodb://gyoho:team6@ds053310.mongolab.com:53310/cmpe283_project2"); 
+	        MongoClient client = new MongoClient(uri);
+	        DB db = client.getDB(uri.getDatabase());
+	        System.out.println("Mongo: connecting to the remote database...");
 			 
 			// get a collection
 	        DBCollection col = db.getCollection(COLLECTION_NAME);
@@ -89,11 +85,11 @@ public class MongoToMySQLTransporter {
 		
 		// JDBC driver name and database URL
 		static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-		static final String DB_URL = "jdbc:mysql://localhost/cmpe283_Project2";
+		static final String DB_URL = "jdbc:mysql://us-cdbr-iron-east-01.cleardb.net/ad_4a646f70a83ab03";
 		
 		//  Database credentials
-		static final String USER = "root";
-		static final String PASS = "internation";
+		static final String USER = "b84cf6af4ff1fa";
+		static final String PASS = "6edb6b8d";
 		static final String TABLE_NAME = "vmLogs";
 		
 		public static Connection connect() throws ClassNotFoundException, SQLException {
@@ -104,7 +100,7 @@ public class MongoToMySQLTransporter {
 			Class.forName(JDBC_DRIVER);
 			
 			// Open a connection
-			System.out.println("MySQL: connecting to database 'cmpe283_Project2' ...");
+			System.out.println("MySQL: connecting to the remote database...");
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
 			System.out.println("MySQL: connected database successfully...");
 			
