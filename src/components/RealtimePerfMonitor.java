@@ -44,7 +44,7 @@ public class RealtimePerfMonitor {
 		/*
 		 * Use <group>.<name>.<ROLLUP-TYPE> path specification to identify counters.
 		 */
-		String[] counterNames = new String[] {"cpu.usage.average", "mem.usage.average", "disk.usage.average", "net.usage.average"};
+		String[] counterNames = new String[] {"cpu.usage.average", "mem.usage.average", /*"disk.usage.average",*/ "net.usage.average"};
 		
 		// specific stats
 		PerfMetricId[] pmis = createPerfMetricId(counterNames, ccm);

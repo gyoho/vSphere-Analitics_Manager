@@ -33,7 +33,7 @@ public class Starter {
 		rootFolder = RootFolderGetter.getRootFolder(center);
 		
 		// get datacenter
-		String dcName = "DC-Team06";
+		String dcName = "DC_Team06";
 		datacenter = (Datacenter) new InventoryNavigator(rootFolder).searchManagedEntity("Datacenter", dcName);
 		
 		
@@ -43,14 +43,14 @@ public class Starter {
 		hostList = InstanceGetter.getAllInstance(rootFolder, "HostSystem");
 		
 		
-		// get specific VM
+		/*// get specific VM
 		String vmName = "T06_VM01_Ubn01";
 		vm = (VirtualMachine) new InventoryNavigator(rootFolder).searchManagedEntity("VirtualMachine", vmName);		
 		// get Host
-		String hostName = "130.65.132.184"; 
-		host = (HostSystem) new InventoryNavigator(rootFolder).searchManagedEntity("HostSystem", hostName);
+		String hostName = "130.65.132.181"; 
+		host = (HostSystem) new InventoryNavigator(rootFolder).searchManagedEntity("HostSystem", hostName);*/
 		
-		ccm = new CounterIDCounterInfoMapper(center, vm);
+		ccm = new CounterIDCounterInfoMapper(center, ((VirtualMachine) vmList.get(0)));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -58,7 +58,7 @@ public class Starter {
 		
 //		RealtimePerfMonitor.printStats(center, vm, ccm);
 		
-		long logstashBreak = 1*1000; 
+		long logstashBreak = 2*100; 
 		long interval = 5*1000;
 		/* TEST
 		   while(true) {
@@ -75,7 +75,6 @@ public class Starter {
 			Thread.sleep(logstashBreak);
 			
 			System.out.println("Transporting logs from MongoDB to MySQL...");
-			MongoToMySQLTransporter.makeConnection();		
 			MongoToMySQLTransporter.transportData();
 			
 			System.out.println("Sleeping 5 seconds...\n\n");

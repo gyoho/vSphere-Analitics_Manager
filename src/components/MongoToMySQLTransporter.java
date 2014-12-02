@@ -14,55 +14,44 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.TimeZone;
 
+/** @Tip
+ * 
+ *  After finishing the operations close connection
+ *  The object itself goes out of scope
+ *  BUT, the session is still unless explicitely close it
+ *
+ */
+
 public class MongoToMySQLTransporter {
 	
-	private static DBCollection collection;
-	private static Connection database;
 	private static ArrayList<BasicDBObject> documentList;
 	
-	public static void makeConnection() throws UnknownHostException, ClassNotFoundException, SQLException {
-		collection = MongoDBConnector.connect();
-		database = MySQLConnector.connect();
-			
-	}
-	
-	public static void transportData() throws ClassNotFoundException, SQLException, ParseException {
-		documentList = MongoDBConnector.retrive(collection);
-		MySQLConnector.insert(database, documentList);
+	public static void transportData() throws ClassNotFoundException, SQLException, ParseException, UnknownHostException {
+		documentList =  MongoDBConnector.getCollection();
+		MySQLConnector.insert(documentList);
 	}
 	
 	
 	private static class MongoDBConnector {
 	
-		static final String DB_NAME = "cmpe283_Project2";
+		static final String DB_NAME = "cmpe283_project2";
 		static final String COLLECTION_NAME = "vmLogs";
 		
-		public static DBCollection connect() throws UnknownHostException {
+		public static ArrayList<BasicDBObject> getCollection() throws UnknownHostException {
 			
 			// Standard URI format: mongodb://[dbuser:dbpassword@]host:port/dbname 
 	        MongoClientURI uri  = new MongoClientURI("mongodb://gyoho:team6@ds053310.mongolab.com:53310/cmpe283_project2"); 
 	        MongoClient client = new MongoClient(uri);
-	        DB db = client.getDB(uri.getDatabase());
-	        System.out.println("Mongo: connecting to the remote database...");
+	        DB db = client.getDB(DB_NAME);
+	        System.out.println("Mongo: connected to the remote database " + DB_NAME);
 			 
 			// get a collection
 	        DBCollection col = db.getCollection(COLLECTION_NAME);
-	        System.out.println("Mongo: collection 'vmLogs' selected");
-			return col;
-		}
-		
-		public static void aggregaet(DBCollection coll) {
-			//TODO: aggregat the data for 5 mins time interval
-			
-			// get timestamp
-			
-			// aggregate the value
-		}
-		
-		public static ArrayList<BasicDBObject> retrive(DBCollection coll) {
+	        System.out.println("Mongo: collection " + COLLECTION_NAME + " selected");
+	        
 			
 			ArrayList<BasicDBObject> docList = new ArrayList<BasicDBObject>();
-			DBCursor cursor = coll.find();
+			DBCursor cursor = col.find();
 			BasicDBObject doc;
 			
 			// copy the mem addr to the list
@@ -71,11 +60,12 @@ public class MongoToMySQLTransporter {
 				docList.add(doc);
 	        }
 	        
+	        /** close the connection, otherwise too many threads accessing the db
+	         *  MongoLab has limitation for concurrent accesses **/
+	        cursor.close();
+	        client.close();
 	        
-	        /*for(BasicDBObject json : docList) {
-	        	System.out.println(json); 
-	        }*/
-	        
+	       
 	        return docList;
 		}
 
@@ -83,6 +73,7 @@ public class MongoToMySQLTransporter {
 	
 	private static class MySQLConnector {
 		
+		/** ClearDB **/
 		// JDBC driver name and database URL
 		static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
 		static final String DB_URL = "jdbc:mysql://us-cdbr-iron-east-01.cleardb.net/ad_4a646f70a83ab03";
@@ -92,7 +83,18 @@ public class MongoToMySQLTransporter {
 		static final String PASS = "6edb6b8d";
 		static final String TABLE_NAME = "vmLogs";
 		
-		public static Connection connect() throws ClassNotFoundException, SQLException {
+		/** Localhost 
+		 * @throws ClassNotFoundException **/
+		// JDBC driver name and database URL
+		/*static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+		static final String DB_URL = "jdbc:mysql://localhost/cmpe283_Project2";
+		
+		//  Database credentials
+		static final String USER = "root";
+		static final String PASS = "internation";
+		static final String TABLE_NAME = "vmLogs";*/
+		
+		public static void insert(ArrayList<BasicDBObject> docList) throws SQLException, ParseException, ClassNotFoundException {
 			
 			Connection conn = null;
 			
@@ -100,19 +102,12 @@ public class MongoToMySQLTransporter {
 			Class.forName(JDBC_DRIVER);
 			
 			// Open a connection
-			System.out.println("MySQL: connecting to the remote database...");
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
 			System.out.println("MySQL: connected database successfully...");
-			
-			return conn;	
-		}
 		
-		public static void insert(Connection conn, ArrayList<BasicDBObject> docList) throws SQLException, ParseException {
 			
+			/** Execute Statement **/
 			Statement stmt = null;
-			
-			// Execute a query
-		    System.out.println("Inserting records into the table...");
 		    stmt = conn.createStatement();
 		    
 		    // doesn't have to specify all the column names
@@ -137,12 +132,18 @@ public class MongoToMySQLTransporter {
 			    		+ " (id, timestamp, vmType, vmName, groupInfo, nameInfo, rollupType, unitInfo, value)"
 			    		+ " VALUES('" + id + "', '" + timestamp + "', '" + vmType	+ "', '" + vmName + "', '" + groupInfo 
 			    		+ "', '" + nameInfo + "', '" + rollupType + "', '" + unitInfo + "', " + value + ")";
-			    
-			    
-//			    System.out.println(sql);
+
 			    
 			    stmt.executeUpdate(sql);
 		    }
+		    
+		    // Execute a query
+		    System.out.println("Inserted records into the table");
+		    
+		    /** close the connection, otherwise too many threads accessing the db
+	         *  ClearDB has limitation for concurrent accesses **/
+		    stmt.close();
+		    conn.close();
 		}
 		
 		/*
