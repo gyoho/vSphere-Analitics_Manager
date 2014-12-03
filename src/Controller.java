@@ -5,7 +5,7 @@ public class Controller {
 		/*MapperTest test = new MapperTest();
 		test.test();*/
 		
-		Starter starter = new Starter();
+		Starter starter = new Starter(args[0]);
 		starter.start();
 	}
 }
