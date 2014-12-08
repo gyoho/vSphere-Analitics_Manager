@@ -7,7 +7,7 @@
    */
 
 
-package components;
+package logCollector;
 
 public class CredentialsHolder {
 	

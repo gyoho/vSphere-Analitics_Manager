@@ -1,5 +1,5 @@
 
-package components;
+package logCollector;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -29,7 +29,7 @@ public class RealtimePerfMonitor {
 		PrintStream ps;
 		 
 		// true => append
-		out = new FileOutputStream("/Users/gyoho/logstash-1.4.2/data/stats.txt", true);
+		out = new FileOutputStream("/home/administrator/logstash-1.4.2/cmpe283_project2/stats.txt", true);
 		// Connect print stream to the output stream
 		ps = new PrintStream(out);
 		
@@ -44,19 +44,12 @@ public class RealtimePerfMonitor {
 		/*
 		 * Use <group>.<name>.<ROLLUP-TYPE> path specification to identify counters.
 		 */
-		String[] counterNames = new String[] {"cpu.usage.average", "mem.usage.average", /*"disk.usage.average",*/ "net.usage.average"};
+		String[] counterNames = new String[] {"cpu.usage.average", "mem.usage.average", "datastore.read.average", "datastore.write.average", "net.usage.average"};
 		
 		// specific stats
 		PerfMetricId[] pmis = createPerfMetricId(counterNames, ccm);
 		
-		
-/*		
-		// all stats
-		// retrieve all the available perf metrics for vm
-		PerfMetricId[] pmis = perfMgr.queryAvailablePerfMetric(vm, null, null, refreshRate);
-
-*/		
-		
+	
 		/**
 		 * Create the query specification for queryPerf().
 		 * Specify ONLY 1 value showing up
@@ -107,7 +100,7 @@ public class RealtimePerfMonitor {
 			// Print the time and interval information
 			ps.println("Collection: interval (seconds),time (yyyy-mm-ddThh:mm:ssZ)");
 			ps.println(csvTimeInfoAboutStats);*/
-			java.util.Date date= new java.util.Date();
+			java.util.Date date = new java.util.Date();
 			
 			
 		
@@ -129,7 +122,18 @@ public class RealtimePerfMonitor {
 					ps.print("HostSystem " + vm.getName() + " ");
 				}
 				ps.print(pci.getGroupInfo().getKey() + " " + pci.getNameInfo().getKey() + " " + pci.getRollupType() + " " + pci.getUnitInfo().getKey() + " ");
-				ps.print(csv.getValue() + "\n");
+				
+				if(Double.parseDouble(csv.getValue()) < 0) {
+					ps.print(0);
+				}
+				else {
+					if(pci.getGroupInfo().getKey().equals("cpu") || pci.getGroupInfo().getKey().equals("mem")) {
+						ps.print((Double.parseDouble(csv.getValue())/100) + "\n");
+					}
+					else {
+						ps.print(csv.getValue() + "\n");
+					}
+				}
 			}
 		}
 		

@@ -1,4 +1,4 @@
-package components;
+package logCollector;
 
 import java.net.MalformedURLException;
 import java.rmi.RemoteException;

@@ -6,7 +6,7 @@
    *
    */
 
-package components;
+package logCollector;
 
 import com.vmware.vim25.mo.Folder;
 import com.vmware.vim25.mo.ServiceInstance;

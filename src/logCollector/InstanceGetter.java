@@ -9,7 +9,7 @@
    *
    */
 
-package components;
+package logCollector;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;

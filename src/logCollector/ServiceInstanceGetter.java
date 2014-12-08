@@ -8,7 +8,7 @@
    *
    */
    
-package components;
+package logCollector;
 
 import java.net.URL;
 import com.vmware.vim25.mo.ServiceInstance;
